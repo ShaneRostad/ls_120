@@ -1,32 +1,26 @@
 class Move
+
+  attr_accessor :value
+
   VALUES = ['rock', 'paper', 'scissors', 'lizard', 'spock']
+
+  def initialize(value)
+    case value
+    when 'rock'
+      @value = Rock.new(value)
+    when 'paper'
+      @value = Paper.new
+    when 'scissors'
+      @value = Scissors.new
+    when 'lizard'
+      @value = Lizard.new
+    when 'spock'
+      @value = Spock.new
+    end
+  end
 
   def to_s
     @value
-  end
-
-  def initialize(value)
-    @value = value
-  end
-
-  def scissors?
-    @value == 'scissors'
-  end
-
-  def rock?
-    @value == 'rock'
-  end
-
-  def paper?
-    @value == 'paper'
-  end
-
-  def spock?
-    @value == 'spock'
-  end
-
-  def lizard?
-    @value == 'lizard'
   end
 
   def >(other_move)
@@ -56,20 +50,71 @@ class Move
   end
 end
 
+class Rock < Move
+
+  def initialize(value)
+    @value = 'rock'
+  end
+
+  def rock?
+    @value == 'rock'
+  end
+end
+
+class Paper < Move
+
+  def initialize(value)
+    @value = 'paper'
+  end
+
+  def paper?
+    @value == 'paper'
+  end
+end
+
+class Scissors < Move
+
+  def initialize(value)
+    @value = 'scissors'
+  end
+
+  def scissors?
+    @value == 'scissors'
+  end
+end
+
+class Spock < Move
+
+  def initialize(value)
+    @value = 'spock'
+  end
+
+  def spock?
+    @value == 'spock'
+  end
+end
+
+class Lizard < Move
+
+  def initialize(value)
+    @value = 'lizard'
+  end
+
+  def lizard?
+    @value == 'lizard'
+  end
+end
+
+
+
 class Player
-  attr_accessor :move, :name, :score, :history, :class
+  attr_accessor :move, :name, :score, :value
 
   def initialize
     set_name
     @score = 0
-    @history = []
-  end
-
-  def track_history(move)
-    @history << move
   end
 end
-
 
 
 
@@ -94,8 +139,8 @@ class Human < Player
       puts "Sorry, invalid choice."
     end
     self.move = Move.new(choice)
-    self.history << self.move
   end
+
 end
 
 class Computer < Player
@@ -103,19 +148,8 @@ class Computer < Player
     self.name = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5'].sample
   end
 
-  def class?
-    if #when chooses rock, loses > 50% of the time
-      'simpleton'
-    elsif #when chooses spock, wins > 50% of the time
-      ''
-    elsif # when chooses
-  end
-
-  # set choices = to an array, in which the word 'rock' appears 'rock' * weight times. Same for the rest of the possible moves. Then weights can be adjusted each time before a choice needs to be made
-
   def choose
     self.move = Move.new(Move::VALUES.sample)
-    self.history << self.move
   end
 end
 
