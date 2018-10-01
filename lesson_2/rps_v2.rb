@@ -2,7 +2,8 @@ require "pry"
 class Move
   attr_accessor :values
 
-  VALUES = ['rock', 'paper', 'scissors', 'lizard', 'spock']
+  VALUES = ['rock', 'paper', 'scissors', 'lizard', 'spock',
+            'r', 'p', 'sc','l', 'sp']
 
   WINNING_MOVES = { 'rock' => ['lizard', 'scissors'],
                     'scissors' => ['paper', 'lizard'],
@@ -38,23 +39,23 @@ class Move
   end
 
   def scissors?
-    @value == 'scissors' || @value == 'sc'
+    @value == 'scissors'
   end
 
   def rock?
-    @value == 'rock' || @value == 'r'
+    @value == 'rock'
   end
 
   def paper?
-    @value == 'paper' || @value == 'p'
+    @value == 'paper'
   end
 
   def spock?
-    @value == 'spock' || @value == 'sp'
+    @value == 'spock'
   end
 
   def lizard?
-    @value == 'lizard' || @value == 'l'
+    @value == 'lizard'
   end
 
   def >(other_move)
