@@ -1,7 +1,20 @@
+require "pry"
 class Move
   attr_accessor :values
 
   VALUES = ['rock', 'paper', 'scissors', 'lizard', 'spock']
+
+  WINNING_MOVES = { 'rock' => ['lizard', 'scissors'],
+                    'scissors' => ['paper', 'lizard'],
+                    'paper' => ['spock', 'rock'],
+                    'spock' => ['scissors', 'rock'],
+                    'lizard' => ['spock', 'paper'] }
+
+  LOSING_MOVES = { 'rock' => ['paper', 'spock'],
+                   'scissors' => ['rock', 'spock'],
+                   'paper' => ['lizard', 'scissors'],
+                   'spock' => ['paper', 'lizard'],
+                   'lizard' => ['scissors', 'spock'] }
 
   def initialize(choice, name)
     if choice == ''
@@ -11,8 +24,6 @@ class Move
         values = ['rock', 'rock', 'rock', 'rock', 'spock']
       elsif name == 'R2D2'
         values = ['rock', 'paper', 'scissors', 'lizard', 'spock']
-      elsif name == 'Number 2'
-        values = ['paper', 'paper', 'paper', 'paper', 'paper', 'lizard']
       else
         values = ['rock', 'paper', 'scissors', 'lizard', 'spock']
       end
@@ -47,29 +58,19 @@ class Move
   end
 
   def >(other_move)
-    (rock? && other_move.scissors?) ||
-      (rock? && other_move.lizard?) ||
-      (paper? && other_move.spock?) ||
-      (paper? && other_move.rock?) ||
-      (scissors? && other_move.paper?) ||
-      (scissors? && other_move.lizard?) ||
-      (spock? && other_move.scissors?) ||
-      (spock? && other_move.rock?) ||
-      (lizard? && other_move.spock?) ||
-      (lizard? && other_move.paper?)
+    WINNING_MOVES[to_s].include?(other_move.to_s) ||
+      WINNING_MOVES[to_s].include?(other_move.to_s) ||
+      WINNING_MOVES[to_s].include?(other_move.to_s) ||
+      WINNING_MOVES[to_s].include?(other_move.to_s) ||
+      WINNING_MOVES[to_s].include?(other_move.to_s)
   end
 
   def <(other_move)
-    (rock? && other_move.paper?) ||
-      (rock? && other_move.spock?) ||
-      (paper? && other_move.lizard?) ||
-      (paper? && other_move.scissors?) ||
-      (scissors? && other_move.spock?) ||
-      (scissors? && other_move.rock?) ||
-      (spock? && other_move.lizard?) ||
-      (spock? && other_move.paper?) ||
-      (lizard? && other_move.scissors?) ||
-      (lizard? && other_move.rock?)
+    LOSING_MOVES[to_s].include?(other_move.to_s) ||
+      LOSING_MOVES[to_s].include?(other_move.to_s) ||
+      LOSING_MOVES[to_s].include?(other_move.to_s) ||
+      LOSING_MOVES[to_s].include?(other_move.to_s) ||
+      LOSING_MOVES[to_s].include?(other_move.to_s)
   end
 end
 
@@ -89,17 +90,17 @@ class Human < Player
     loop do
       puts "What's your name?"
       n = gets.chomp
-      break unless n.empty?
+      break unless n.empty? || n[0] == ' '
       puts "Sorry, must enter a value."
     end
-    self.name = n
+    self.name = n.strip.capitalize
   end
 
   def choose
     choice = nil
     loop do
       puts "Please choose rock, paper, scissors, lizard, or spock:"
-      choice = gets.chomp
+      choice = gets.chomp.downcase
       break if Move::VALUES.include? choice
       puts "Sorry, invalid choice."
     end
@@ -125,13 +126,17 @@ end
 class RPSGame
   attr_accessor :human, :computer
 
+  WINNING_SCORE = 10
+
   def initialize
     @human = Human.new
     @computer = Computer.new
   end
 
   def display_welcome_message
-    puts "Welcome to Rock, Paper, Scissors, Lizard, Spock!"
+    system("clear")
+    puts "Hello #{human.name}! Welcome to Rock, Paper, Scissors, Lizard, Spock!"
+    puts "The first to 10 points will be declared the winner!"
   end
 
   def display_goodbye_message
@@ -139,6 +144,7 @@ class RPSGame
   end
 
   def display_moves
+    system("clear")
     puts "#{human.name} chose #{human.move}"
     puts "#{computer.name} chose #{computer.move}"
   end
@@ -161,17 +167,18 @@ class RPSGame
     end
   end
 
-  def play_again?
-    answer = nil
-    loop do
-      puts "Would you like to play again? (y/n)"
-      answer = gets.chomp
-      break if ['y', 'n'].include? answer.downcase
-      puts "Sorry, must be y or n."
+  def match_won?
+    if human.score >= WINNING_SCORE
+      puts "#{human.name} Won the match!"
+      true
+    elsif computer.score >= WINNING_SCORE
+      puts "#{computer.name} Won the match!"
+      true
     end
+  end
 
-    return true if answer.downcase == 'y'
-    return false if answer.downcase == 'n'
+  def display_score
+    puts "#{human.name}: #{human.score} | #{computer.name}: #{computer.score}"
   end
 
   def play
@@ -179,13 +186,12 @@ class RPSGame
     loop do
       human.choose
       computer.choose
+
       display_moves
       display_winner
       increment_score
-      puts "#{human.name}: #{human.score} | #{computer.name}: #{computer.score}"
-      puts "#{human.name} Won the match!" if human.score >= 10
-      puts "#{computer.name} Won the match!" if computer.score >= 10
-      break if human.score >= 10 || computer.score >= 10
+      display_score
+      break if match_won?
     end
     display_goodbye_message
   end
