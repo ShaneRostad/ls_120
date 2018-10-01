@@ -38,39 +38,31 @@ class Move
   end
 
   def scissors?
-    @value == 'scissors'
+    @value == 'scissors' || @value == 'sc'
   end
 
   def rock?
-    @value == 'rock'
+    @value == 'rock' || @value == 'r'
   end
 
   def paper?
-    @value == 'paper'
+    @value == 'paper' || @value == 'p'
   end
 
   def spock?
-    @value == 'spock'
+    @value == 'spock' || @value == 'sp'
   end
 
   def lizard?
-    @value == 'lizard'
+    @value == 'lizard' || @value == 'l'
   end
 
   def >(other_move)
-    WINNING_MOVES[to_s].include?(other_move.to_s) ||
-      WINNING_MOVES[to_s].include?(other_move.to_s) ||
-      WINNING_MOVES[to_s].include?(other_move.to_s) ||
-      WINNING_MOVES[to_s].include?(other_move.to_s) ||
-      WINNING_MOVES[to_s].include?(other_move.to_s)
+    WINNING_MOVES[to_s].include?(other_move.to_s)
   end
 
   def <(other_move)
-    LOSING_MOVES[to_s].include?(other_move.to_s) ||
-      LOSING_MOVES[to_s].include?(other_move.to_s) ||
-      LOSING_MOVES[to_s].include?(other_move.to_s) ||
-      LOSING_MOVES[to_s].include?(other_move.to_s) ||
-      LOSING_MOVES[to_s].include?(other_move.to_s)
+    LOSING_MOVES[to_s].include?(other_move.to_s)
   end
 end
 
@@ -96,14 +88,26 @@ class Human < Player
     self.name = n.strip.capitalize
   end
 
+  def clean_input(choice)
+    case choice
+    when 'r' then 'rock'
+    when 'p' then 'paper'
+    when 'sp' then 'spock'
+    when 'sc' then 'scissors'
+    when 'l' then 'lizard'
+    else choice
+    end
+  end
+
   def choose
     choice = nil
     loop do
-      puts "Please choose rock, paper, scissors, lizard, or spock:"
+      puts "Please choose rock(r), paper(p), scissors(sc), lizard(l), or spock(sp): "
       choice = gets.chomp.downcase
       break if Move::VALUES.include? choice
       puts "Sorry, invalid choice."
     end
+    choice = clean_input(choice)
     self.move = Move.new(choice, '')
     history << move.to_s
   end
