@@ -1,12 +1,29 @@
 class Move
+  attr_accessor :values
+
   VALUES = ['rock', 'paper', 'scissors', 'lizard', 'spock']
+
+  def initialize(choice, name)
+    if choice == ''
+      if name == 'Edward Scissorhands'
+        values = ['scissors', 'scissors', 'scissors', 'scissors', 'rock']
+      elsif name == 'Rocky Balboa'
+        values = ['rock', 'rock', 'rock', 'rock', 'spock']
+      elsif name == 'R2D2'
+        values = ['rock', 'paper', 'scissors', 'lizard', 'spock']
+      elsif name == 'Number 2'
+        values = ['paper', 'paper', 'paper', 'paper', 'paper', 'lizard']
+      else
+        values = ['rock', 'paper', 'scissors', 'lizard', 'spock']
+      end
+      @value = values.sample
+    else
+      @value = choice
+    end
+  end
 
   def to_s
     @value
-  end
-
-  def initialize(value)
-    @value = value
   end
 
   def scissors?
@@ -64,14 +81,7 @@ class Player
     @score = 0
     @history = []
   end
-
-  def track_history(move)
-    @history << move
-  end
 end
-
-
-
 
 class Human < Player
   def set_name
@@ -93,29 +103,22 @@ class Human < Player
       break if Move::VALUES.include? choice
       puts "Sorry, invalid choice."
     end
-    self.move = Move.new(choice)
-    self.history << self.move
+    self.move = Move.new(choice, '')
+    history << move.to_s
   end
 end
 
 class Computer < Player
+  attr_accessor :choices
+
   def set_name
-    self.name = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5'].sample
+    self.name = ['R2D2', 'Hal', 'Rocky Balboa',
+                 'Edward Scissorhands', 'Number 2'].sample
   end
-
-  def class?
-    if #when chooses rock, loses > 50% of the time
-      'simpleton'
-    elsif #when chooses spock, wins > 50% of the time
-      ''
-    elsif # when chooses
-  end
-
-  # set choices = to an array, in which the word 'rock' appears 'rock' * weight times. Same for the rest of the possible moves. Then weights can be adjusted each time before a choice needs to be made
 
   def choose
-    self.move = Move.new(Move::VALUES.sample)
-    self.history << self.move
+    self.move = Move.new('', name)
+    history << move.to_s
   end
 end
 
