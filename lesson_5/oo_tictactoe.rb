@@ -74,10 +74,9 @@ class Board
   # rubocop:enable Metrics/LineLength
 
   def make_best_move(line, player)
-    if count_player_markers_on_line(line, player) == 2
-      square = select_square(line, player)
-      return square if @squares[square].unmarked?
-    end
+    return if count_player_markers_on_line(line, player) != 2
+    square = select_square(line, player)
+    return square if @squares[square].unmarked?
   end
 
   def three_identical_markers?(squares)
@@ -162,6 +161,7 @@ class TTTGame
   end
 
   def display_score
+    puts "First to #{WINNING_SCORE} points wins!"
     puts "#{human.name} has #{human.score} points"
     puts "#{computer.name} has #{computer.score} points"
   end
