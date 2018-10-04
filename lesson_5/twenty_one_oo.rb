@@ -213,13 +213,33 @@ class Game
     dealer_win?
   end
 
+  def reset
+    gambler.hand = []
+    dealer.hand = []
+    @deck = Deck.new
+  end
+
+  def play_again?
+    response = nil
+    loop do
+      puts "Would you like to play again? (y/n)"
+      response = gets.chomp.downcase
+      break if ['y', 'n'].include? response
+    end
+    response == 'y'
+  end
+
   def start
-    deal_cards
-    show_initial_cards
-    player_turn
-    dealer_turn
-    system "clear"
-    show_result
+    loop do
+      clear
+      deal_cards
+      show_initial_cards
+      player_turn
+      dealer_turn
+      system "clear"
+      show_result
+      play_again? ? reset : break
+    end
   end
 end
 
