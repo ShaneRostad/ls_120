@@ -22,6 +22,10 @@ class Player
     total > 21
   end
 
+  def win_by_score?(other_player)
+    total > other_player.total
+  end
+
   def twenty_one_win?
     total == 21
   end
@@ -189,7 +193,7 @@ class Game
       puts "The dealer busted! You win!"
     elsif dealer.twenty_one_win?
       puts "The dealer hit 21, you lose."
-    elsif dealer.total > gambler.total
+    elsif win_by_score?(gambler)
       puts "The dealer wins. Better Luck next time!"
     elsif dealer.total == gambler.total
       puts "It's a tie!"
@@ -201,7 +205,7 @@ class Game
       puts "You busted! Better luck next time!"
     elsif gambler.twenty_one_win?
       puts "You hit 21! You win!"
-    elsif gambler.total > dealer.total
+    elsif win_by_score?(dealer)
       puts "You win!"
     end
   end
