@@ -5,6 +5,8 @@ class Board
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
                   [[1, 5, 9], [3, 5, 7]]
 
+  FULL_ROW = 3
+
   def initialize
     @squares = {}
     reset
@@ -53,7 +55,7 @@ class Board
     nil
   end
 
-  def make_best_move
+  def best_opening_move
     square = nil
     if @squares[5].marker == Square::INITIAL_MARKER
       square = 5
@@ -61,25 +63,26 @@ class Board
     square
   end
 
-  def find_winning_square(line, player)
-    if @squares.values_at(*line).select(&:marked?).collect(&:marker).count(player.marker) == 2
-      square = line.select { |sq| @squares[sq].marker != player.marker }.join.to_i
-      return square if @squares[square].unmarked?
-    end
+  def select_square(line, player)
+    line.select { |sq| @squares[sq].marker != player.marker }.first
   end
+  # rubocop:disable Metrics/LineLength
 
-  def find_at_risk_square(line, player)
-    square = nil
+  def count_player_markers_on_line(line, player)
+    @squares.values_at(*line).select(&:marked?).collect(&:marker).count(player.marker)
+  end
+  # rubocop:enable Metrics/LineLength
 
-    if @squares.values_at(*line).select(&:marked?).collect(&:marker).count(player.marker) == 2
-      square = line.select { |sq| @squares[sq].marker != player.marker }.join.to_i
+  def make_best_move(line, player)
+    if count_player_markers_on_line(line, player) == 2
+      square = select_square(line, player)
       return square if @squares[square].unmarked?
     end
   end
 
   def three_identical_markers?(squares)
     markers = squares.select(&:marked?).collect(&:marker)
-    return false if markers.size != 3
+    return false if markers.size != FULL_ROW
     markers.min == markers.max
   end
 
@@ -123,11 +126,15 @@ end
 class TTTGame
   attr_accessor :board, :human, :computer, :turn_counter
 
+  WINNING_SCORE = 5
+
+  @turn_counter = nil
+
   def initialize
-    @@turn_counter = 0
     @board = Board.new
     human_player
     computer_player
+    @turn_counter = 0
   end
 
   def computer_player
@@ -141,7 +148,7 @@ class TTTGame
     loop do
       puts "Please enter your name: "
       name = gets.chomp.capitalize
-      break unless name.empty? || name[0] == ''
+      break unless name.empty? || name[0] == ' '
       puts "please enter a name."
     end
 
@@ -159,6 +166,10 @@ class TTTGame
     puts "#{computer.name} has #{computer.score} points"
   end
 
+  def match_over?
+    board.someone_won? || board.full?
+  end
+
   def play
     display_welcome_message
 
@@ -166,13 +177,12 @@ class TTTGame
       display_board
       loop do
         current_player_moves
-        break if board.someone_won? || board.full?
+        break if match_over?
         clear_screen_and_display_board if human_turn?
       end
       display_result
       display_score
-      break if match_win?
-      break if next_round? == false
+      break if match_win? || next_round? == false
       reset
     end
     display_goodbye_message
@@ -181,7 +191,7 @@ class TTTGame
   def display_welcome_message
     clear
     puts "Welcome to Tic Tac Toe!"
-    puts "The first player to win 5 games is the winner!"
+    puts "The first player to win #{WINNING_SCORE} games is the winner!"
     puts ""
   end
 
@@ -202,7 +212,7 @@ class TTTGame
   end
 
   def human_turn?
-    @@turn_counter.even?
+    turn_counter.even?
   end
 
   def joinor(array, delimiter=',', combinor='or')
@@ -222,7 +232,7 @@ class TTTGame
     else
       computer_moves
     end
-    @@turn_counter += 1
+    @turn_counter += 1
   end
 
   def human_moves
@@ -240,24 +250,16 @@ class TTTGame
   def computer_moves
     square = nil
 
-    square = board.make_best_move
+    square = board.best_opening_move
 
     if !square
       Board::WINNING_LINES.each do |line|
-        square = board.find_winning_square(line, computer)
+        square = board.make_best_move(line, computer)
         break if square
-      end
-    end
-
-    if !square
-      Board::WINNING_LINES.each do |line|
-        square = board.find_at_risk_square(line, human)
+        square = board.make_best_move(line, human)
         break if square
+        square = board.unmarked_keys.sample
       end
-    end
-
-    if !square
-      square = board.unmarked_keys.sample
     end
 
     board[square] = computer.marker
@@ -279,7 +281,7 @@ class TTTGame
   end
 
   def match_win?
-    human.score > 4 || computer.score > 4
+    human.score == WINNING_SCORE || computer.score == WINNING_SCORE
   end
 
   def next_round?
@@ -297,7 +299,7 @@ class TTTGame
   end
 
   def clear
-    system "clear"
+    system('clear') || system('cls')
   end
 
   def reset
@@ -305,7 +307,7 @@ class TTTGame
     clear
     puts "Let's play again!"
     puts ""
-    @@turn_counter = 0
+    @turn_counter = 0
   end
 end
 
