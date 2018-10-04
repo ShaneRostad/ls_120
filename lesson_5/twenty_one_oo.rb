@@ -1,3 +1,4 @@
+require "pry"
 class Player
   attr_accessor :type, :hand, :total
 
@@ -10,15 +11,19 @@ class Player
   end
 
   def hit(deck)
-    @hand << [deck.values.sample] + [deck.suits.sample]
+    @hand << deck.pop
   end
 
   def stay
-    nil
+    'stay'
   end
 
   def busted?
     total > 21
+  end
+
+  def twenty_one_win?
+    total == 21
   end
 
   def two_through_ten(num)
@@ -27,14 +32,13 @@ class Player
 
   def total
     total = 0
-
     @hand.each do |card|
       if VALID_CARDS.include?(card[0])
-        total + card[0].to_i
+        total += card[0].to_i
       elsif card[0] == 'ace'
-        total + 11
+        total += 11
       else
-        total + 10
+        total += 10
       end
     end
 
@@ -47,18 +51,26 @@ class Player
 end
 
 class Deck
-  attr_reader :suits, :values
-
+  attr_accessor :game_deck
+  SUITS = ['Hearts', 'Spades', 'Clubs', 'Diamonds']
+  VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack',
+            'queen', 'king', 'ace']
   def initialize
-    @suits = ['Hearts', 'Spades', 'Clubs', 'Diamonds']
-    @values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack',
-               'queen', 'king', 'ace']
+    @game_deck = fresh_deck
   end
-end
 
-class Card
-  def initialize
-    # what are the "states" of a card?
+  def pop
+    @game_deck.pop
+  end
+
+  def fresh_deck
+    cards = []
+    SUITS.each do |suit|
+      VALUES.each do |value|
+        cards << [value] + [suit]
+      end
+    end
+    cards.shuffle
   end
 end
 
@@ -81,13 +93,13 @@ class Game
 
   def deal_gambler_hand
     2.times do
-      gambler.hand << [deck.values.sample] + [deck.suits.sample]
+      gambler.hand << deck.pop
     end
   end
 
   def deal_dealer_hand
     2.times do
-      dealer.hand << [deck.values.sample] + [deck.suits.sample]
+      dealer.hand << deck.pop
     end
   end
 
@@ -101,12 +113,12 @@ class Game
     puts "Your cards are: #{format_cards(gambler)}"
 
     puts ""
-    puts "The dealer's cards are: #{format_cards(dealer)}"
+    puts "The dealer's cards are: #{format_cards(dealer)[0]}"
     puts ""
   end
 
   def format_cards(player)
-    player.hand.map { |set| set[0] + ' of ' + set[1] }
+    player.hand.map { |card| card[0] + ' of ' + card[1] }
   end
 
   def show_current_hand
@@ -120,28 +132,34 @@ class Game
     loop do
       puts "Would you like to hit or stay?"
       choice = gets.chomp.downcase
+
       break if options.include?(choice)
       puts "Sorry, please enter hit or stay"
     end
     choice
   end
 
+  def clear
+    system('clear') || system('cls')
+  end
+
   def player_turn
     loop do
       choice = player_pick_move
+
       if choice == 'hit'
         gambler.hit(@deck)
+        clear
         show_current_hand
       elsif choice == 'stay'
         gambler.stay
-        break
       end
-      break if gambler.busted? || choice == 'stay'
+      break if gambler.busted? || choice == 'stay' || gambler.twenty_one_win?
     end
   end
 
   def dealer_turn
-    return nil if gambler.busted?
+    return nil if gambler.busted? || gambler.twenty_one_win?
     loop do
       if dealer.total < 17
         dealer.hit(@deck)
@@ -149,7 +167,7 @@ class Game
         dealer.stay
         break
       end
-
+      break if dealer.twenty_one_win?
       break if dealer.busted?
     end
   end
@@ -167,17 +185,32 @@ class Game
     puts ""
   end
 
-  def show_result
-    show_final_cards
+  def dealer_win?
+    if dealer.busted?
+      puts "The dealer busted! You win!"
+    elsif dealer.twenty_one_win?
+      puts "The dealer hit 21, you lose."
+    elsif dealer.total > gambler.total
+      puts "The dealer wins. Better Luck next time!"
+    else
+      puts "It's a tie!"
+    end
+  end
+
+  def gambler_win?
     if gambler.busted?
       puts "You busted! Better luck next time!"
-    elsif dealer.busted?
-      puts "The dealer busted! You win!"
+    elsif gambler.twenty_one_win?
+      puts "You hit 21! You win!"
     elsif gambler.total > dealer.total
       puts "You win!"
-    else
-      puts "Sorry, the dealer won!"
     end
+  end
+
+  def show_result
+    show_final_cards
+    gambler_win?
+    dealer_win?
   end
 
   def start
