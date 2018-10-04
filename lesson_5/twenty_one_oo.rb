@@ -132,7 +132,6 @@ class Game
     loop do
       puts "Would you like to hit or stay?"
       choice = gets.chomp.downcase
-
       break if options.include?(choice)
       puts "Sorry, please enter hit or stay"
     end
@@ -150,7 +149,7 @@ class Game
       if choice == 'hit'
         gambler.hit(@deck)
         clear
-        show_current_hand
+        show_initial_cards
       elsif choice == 'stay'
         gambler.stay
       end
@@ -192,7 +191,7 @@ class Game
       puts "The dealer hit 21, you lose."
     elsif dealer.total > gambler.total
       puts "The dealer wins. Better Luck next time!"
-    else
+    elsif dealer.total == gambler.total
       puts "It's a tie!"
     end
   end
