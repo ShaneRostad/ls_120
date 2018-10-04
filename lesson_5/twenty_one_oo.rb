@@ -1,13 +1,12 @@
 class Player
   attr_accessor :type, :hand, :total
 
+  VALID_CARDS = ['2', '3', '4', '5', '6', '7', '8', '9', '10']
+
   def initialize(type)
     @type = type
     @hand = []
     @total = 0
-    #thinking the player and Dealer will both have cards
-    # what would the "data" or "states" of a Player object entail?
-    # maybe cards? a name?
   end
 
   def hit(deck)
@@ -22,16 +21,20 @@ class Player
     total > 21
   end
 
+  def two_through_ten(num)
+    VALID_CARDS.include?(num)
+  end
+
   def total
     total = 0
 
     @hand.each do |card|
-      if %w(2 3 4 5 6 7 8 9 10).include?(card[0])
-        total += card[0].to_i
+      if VALID_CARDS.include?(card[0])
+        total + card[0].to_i
       elsif card[0] == 'ace'
-        total += 11
+        total + 11
       else
-        total += 10
+        total + 10
       end
     end
 
@@ -41,9 +44,7 @@ class Player
 
     total
   end
-
 end
-
 
 class Deck
   attr_reader :suits, :values
@@ -78,42 +79,62 @@ class Game
     @dealer = Player.new('dealer')
   end
 
-  def deal_cards
+  def deal_gambler_hand
     2.times do
       gambler.hand << [deck.values.sample] + [deck.suits.sample]
+    end
+  end
+
+  def deal_dealer_hand
+    2.times do
       dealer.hand << [deck.values.sample] + [deck.suits.sample]
     end
   end
 
+  def deal_cards
+    deal_gambler_hand
+    deal_dealer_hand
+  end
+
   def show_initial_cards
     puts ""
-    puts "Your cards are: #{gambler.hand.map { |set| set[0] + ' of ' + set[1] }}"
+    puts "Your cards are: #{format_cards(gambler)}"
+
     puts ""
-    puts "The dealer's cards are: #{dealer.hand[0][0] + ' of ' + dealer.hand[0][1] }"
+    puts "The dealer's cards are: #{format_cards(dealer)}"
     puts ""
+  end
+
+  def format_cards(player)
+    player.hand.map { |set| set[0] + ' of ' + set[1] }
   end
 
   def show_current_hand
-    puts "Your cards are: #{gambler.hand.map { |set| set[0] + ' of ' + set[1] }}"
+    puts "Your cards are: #{format_cards(gambler)}"
+  end
+
+  def player_pick_move
+    choice = nil
+    options = ['hit', 'stay']
+
+    loop do
+      puts "Would you like to hit or stay?"
+      choice = gets.chomp.downcase
+      break if options.include?(choice)
+      puts "Sorry, please enter hit or stay"
+    end
+    choice
   end
 
   def player_turn
-
     loop do
-      choice = nil
-      loop do
-        puts "Would you like to hit or stay?"
-        choice = gets.chomp
-        break if %w(hit stay).include? choice
-        puts "Sorry, please enter hit or stay"
-      end
-
+      choice = player_pick_move
       if choice == 'hit'
-         gambler.hit(@deck)
-         show_current_hand
+        gambler.hit(@deck)
+        show_current_hand
       elsif choice == 'stay'
-         gambler.stay
-         break
+        gambler.stay
+        break
       end
       break if gambler.busted? || choice == 'stay'
     end
@@ -134,7 +155,7 @@ class Game
   end
 
   def show_dealer_cards
-    puts "The dealer's cards are: #{dealer.hand.map { |set| set[0] + ' of ' + set[1] }}"
+    puts "The dealer's cards are: #{format_cards(dealer)}"
   end
 
   def show_final_cards
