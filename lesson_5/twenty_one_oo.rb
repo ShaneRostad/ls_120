@@ -2,7 +2,7 @@ require "pry"
 class Player
   attr_accessor :type, :hand, :total
 
-  VALID_CARDS = ['2', '3', '4', '5', '6', '7', '8', '9', '10']
+  NUMERIC_CARDS = ['2', '3', '4', '5', '6', '7', '8', '9', '10']
 
   def initialize(type)
     @type = type
@@ -19,7 +19,7 @@ class Player
   end
 
   def busted?
-    total > 21
+    total > Game::MAX_SCORE
   end
 
   def win_by_score?(other_player)
@@ -27,27 +27,27 @@ class Player
   end
 
   def twenty_one_win?
-    total == 21
+    total == Game::MAX_SCORE
   end
 
   def two_through_ten(num)
-    VALID_CARDS.include?(num)
+    NUMERIC_CARDS.include?(num)
   end
 
   def total
     total = 0
     @hand.each do |card|
-      if VALID_CARDS.include?(card[0])
-        total += card[0].to_i
-      elsif card[0] == 'ace'
-        total += 11
-      else
-        total += 10
-      end
+      total += if NUMERIC_CARDS.include?(card[0])
+                 card[0].to_i
+               elsif card[0] == 'ace'
+                 11
+               else
+                 10
+               end
     end
 
     @hand.select { |card| card[0] == 'ace' }.count.times do
-      total -= 10 if total > 21
+      total -= 10 if total > Game::MAX_SCORE
     end
 
     total
@@ -79,6 +79,7 @@ class Deck
 end
 
 class Game
+  MAX_SCORE = 21
   attr_accessor :deck, :gambler, :dealer
 
   def initialize
@@ -112,7 +113,7 @@ class Game
     deal_dealer_hand
   end
 
-  def show_initial_cards
+  def display_initial_cards
     puts ""
     puts "Your cards are: #{format_cards(gambler)}"
 
@@ -125,13 +126,13 @@ class Game
     player.hand.map { |card| card[0] + ' of ' + card[1] }
   end
 
-  def show_current_hand
+  def display_current_hand
     puts "Your cards are: #{format_cards(gambler)}"
   end
 
   def player_pick_move
     choice = nil
-    options = ['hit', 'stay']
+    options = ['hit', 'stay', 'h', 's']
 
     loop do
       puts "Would you like to hit or stay?"
@@ -139,7 +140,12 @@ class Game
       break if options.include?(choice)
       puts "Sorry, please enter hit or stay"
     end
-    choice
+    make_full_word(choice)
+  end
+
+  def make_full_word(choice)
+    return 'hit' if choice == 'h' || choice == 'hit'
+    return 'stay' if choice == 's' || choice == 'stay'
   end
 
   def clear
@@ -153,7 +159,7 @@ class Game
       if choice == 'hit'
         gambler.hit(@deck)
         clear
-        show_initial_cards
+        display_initial_cards
       elsif choice == 'stay'
         gambler.stay
       end
@@ -175,45 +181,61 @@ class Game
     end
   end
 
-  def show_dealer_cards
+  def display_dealer_cards
     puts "The dealer's cards are: #{format_cards(dealer)}"
   end
 
-  def show_final_cards
-    show_dealer_cards
+  def display_final_cards
+    display_dealer_cards
     puts "Giving the dealer a total of #{dealer.total}"
     puts ""
-    show_current_hand
+    display_current_hand
     puts "Giving you a total of #{gambler.total}"
     puts ""
   end
 
-  def dealer_win?
-    if dealer.busted?
-      puts "The dealer busted! You win!"
+  def display_dealer_win
+    if gambler.busted?
+      puts "You busted! Better luck next time!"
     elsif dealer.twenty_one_win?
-      puts "The dealer hit 21, you lose."
-    elsif win_by_score?(gambler)
+      puts "The dealer hit #{MAX_SCORE}, you lose."
+    elsif dealer.win_by_score?(gambler)
       puts "The dealer wins. Better Luck next time!"
-    elsif dealer.total == gambler.total
-      puts "It's a tie!"
     end
   end
 
-  def gambler_win?
-    if gambler.busted?
-      puts "You busted! Better luck next time!"
+  def display_tie
+    puts "It's a tie!"
+  end
+
+  def display_gambler_win
+    if dealer.busted?
+      puts "The dealer busted! You win!"
     elsif gambler.twenty_one_win?
-      puts "You hit 21! You win!"
-    elsif win_by_score?(dealer)
+      puts "You hit #{MAX_SCORE}! You win!"
+    elsif gambler.win_by_score?(dealer)
       puts "You win!"
     end
   end
 
-  def show_result
-    show_final_cards
-    gambler_win?
-    dealer_win?
+  def tie?
+    dealer.total == gambler.total
+  end
+
+  def gambler_win?
+    dealer.busted? || gambler.twenty_one_win? ||
+      gambler.win_by_score?(dealer) && !gambler.busted?
+  end
+
+  def dealer_win?
+    gambler.busted? || dealer.twenty_one_win? ||
+      dealer.win_by_score?(dealer) && !dealer.busted?
+  end
+
+  def display_result
+    display_final_cards
+    return display_tie if tie?
+    gambler_win? ? display_gambler_win : display_dealer_win
   end
 
   def reset
@@ -236,11 +258,11 @@ class Game
     loop do
       clear
       deal_cards
-      show_initial_cards
+      display_initial_cards
       player_turn
       dealer_turn
-      system "clear"
-      show_result
+      clear
+      display_result
       play_again? ? reset : break
     end
   end
