@@ -33,8 +33,3 @@ p bob.first_name            # => 'Robert'
 p bob.last_name             # => ''
 bob.last_name = 'Smith'
 p bob.name                  # => 'Robert Smith'
-
-p bob.first_name            # => 'John'
-p bob.last_name             # => 'Adams'
-
-p bob.name == rob.name
