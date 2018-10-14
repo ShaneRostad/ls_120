@@ -12,6 +12,14 @@ end
 # link to answer: https://launchschool.com/lessons/3315a57a/assignments/5fe1a165
 ```
 
+In this program, we define a custom class `Dog`, with two methods.
+
+First, we define `initialize`, which is the method that will be called each time we instantiate a new object of the `Dog` class. This method will initialize the instance variable `@name` to the value of the dog's name as specified by the argument.
+
+Then, we define the instance method `say_hello`, which will print the interpolated String `"Woof! My name is #{@name}"` to the screeen, the instance variable `@name` being unique to the instance of `Dog` we call `say_hello` on. `say_hello` will return `nil`.
+
+
+
 
 ###----------------------------------------------------
 # Example
@@ -50,6 +58,26 @@ p bob.last_name             # => ''
 bob.last_name = 'Smith'
 p bob.name                  # => 'Robert Smith'
 ```
+
+In this program, we define a custom class `Person`, within this class we:
+
+First, we call the method `attr_accessor` which is built in to the Ruby  language and when called, automatically creates getter and setter methods for the instance variable specified by the symbol we pass in as an argument.
+
+Within this code, we define a private method `parse_full_name`, which is only accessible within instance methods of the `Person` class. This method accepts one argument `full_name`.
+
+ Within `parse_full_name` on line 46, we initialize the local variable `parts` to the value of calling `#split` on `full_name`. Then, we call `self.first_name=` which will assign the current instance's `@first_name` variable to the value of calling `parts.first`.
+
+We repeat this on line 48 using the `self.last_name=` method, though for this we pass in a conditional `parts.size > 1` which will return `true` or `false`, and then we pass this boolean into the ternary operator to assign `@last_name` to either `parts.last` or `''` if the boolean is `true` or `false`, respectively.
+
+In this class we also define 3 public instance methods:
+* we define `initialize` which takes an argument `full_name` and passes this argument into the private method `parse_full_name`.
+* we define `name=` which takes an argument `full_name`, and passes this argument into the private method `parse_full_name`.
+* We define an instance method `name`, which returns the a String combining both `@first_name`, and `@last_name` separated by a space. We call `strip` on this String to remove any trailing or leading whitespace.
+
+
+
+
+
 
 
 ###----------------------------------------------------------------
